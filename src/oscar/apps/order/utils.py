@@ -15,6 +15,7 @@ order_placed = get_class('order.signals', 'order_placed')
 
 
 class OrderNumberGenerator(object):
+
     """
     Simple object for generating order numbers.
 
@@ -30,6 +31,7 @@ class OrderNumberGenerator(object):
 
 
 class OrderCreator(object):
+
     """
     Places the order by writing out the various models
     """
@@ -131,18 +133,32 @@ class OrderCreator(object):
         extra_line_fields value
         """
         product = basket_line.product
-        stockrecord = basket_line.stockrecord
-        if not stockrecord:
-            raise exceptions.UnableToPlaceOrder(
-                "Baket line #%d has no stockrecord" % basket_line.id)
-        partner = stockrecord.partner
+        stockrecord = None
+
+        if basket_line.product.get_product_class().track_stock:
+            stockrecord = basket_line.stockrecord
+            if not stockrecord:
+                raise exceptions.UnableToPlaceOrder(
+                    "Baket line #%d has no stockrecord" % basket_line.id)
+
         line_data = {
-            'order': order,
-            # Partner details
-            'partner': partner,
-            'partner_name': partner.name,
-            'partner_sku': stockrecord.partner_sku,
-            'stockrecord': stockrecord,
+            'order': order
+        }
+
+        if stockrecord:
+
+            partner = stockrecord.partner
+            line_data.update({
+                # Partner details
+                'partner': partner,
+                'partner_name': partner.name,
+                'partner_sku': stockrecord.partner_sku,
+                # Reporting details
+                'unit_cost_price': stockrecord.cost_price,
+                'unit_retail_price': stockrecord.price_retail,
+            })
+
+        line_data.update({
             # Product details
             'product': product,
             'title': product.get_title(),
@@ -158,14 +174,12 @@ class OrderCreator(object):
             'line_price_before_discounts_incl_tax':
             basket_line.line_price_incl_tax,
             # Reporting details
-            'unit_cost_price': stockrecord.cost_price,
             'unit_price_incl_tax': basket_line.unit_price_incl_tax,
             'unit_price_excl_tax': basket_line.unit_price_excl_tax,
-            'unit_retail_price': stockrecord.price_retail,
             # Shipping details
             'est_dispatch_date':
             basket_line.purchase_info.availability.dispatch_date
-        }
+        })
         extra_line_fields = extra_line_fields or {}
         if hasattr(settings, 'OSCAR_INITIAL_LINE_STATUS'):
             if not (extra_line_fields and 'status' in extra_line_fields):
@@ -221,7 +235,6 @@ class OrderCreator(object):
                 value=attr.value)
 
     def create_discount_model(self, order, discount):
-
         """
         Create an order discount model for each offer application attached to
         the basket.
