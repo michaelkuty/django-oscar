@@ -15,6 +15,7 @@ from oscar.models.fields import PhoneNumberField, UppercaseCharField
 
 @python_2_unicode_compatible
 class AbstractAddress(models.Model):
+
     """
     Superclass address object
 
@@ -30,7 +31,9 @@ class AbstractAddress(models.Model):
         (DR, _("Dr")),
     )
 
-    POSTCODE_REQUIRED = 'postcode' in settings.OSCAR_REQUIRED_ADDRESS_FIELDS
+    @property
+    def POSTCODE_REQUIRED(self):
+        return 'postcode' in settings.OSCAR_REQUIRED_ADDRESS_FIELDS
 
     # Regex for each country. Not listed countries don't use postcodes
     # Based on http://en.wikipedia.org/wiki/List_of_postal_codes
@@ -381,6 +384,7 @@ class AbstractAddress(models.Model):
 
 @python_2_unicode_compatible
 class AbstractCountry(models.Model):
+
     """
     International Organization for Standardization (ISO) 3166-1 Country list.
 
@@ -438,6 +442,7 @@ class AbstractCountry(models.Model):
 
 
 class AbstractShippingAddress(AbstractAddress):
+
     """
     A shipping address.
 
@@ -480,6 +485,7 @@ class AbstractShippingAddress(AbstractAddress):
 
 
 class AbstractUserAddress(AbstractShippingAddress):
+
     """
     A user's address.  A user can have many of these and together they form an
     'address book' of sorts for the user.
@@ -557,6 +563,7 @@ class AbstractUserAddress(AbstractShippingAddress):
 
 
 class AbstractBillingAddress(AbstractAddress):
+
     class Meta:
         abstract = True
         # BillingAddress is registered in order/models.py
@@ -576,6 +583,7 @@ class AbstractBillingAddress(AbstractAddress):
 
 
 class AbstractPartnerAddress(AbstractAddress):
+
     """
     A partner can have one or more addresses. This can be useful e.g. when
     determining US tax which depends on the origin of the shipment.
