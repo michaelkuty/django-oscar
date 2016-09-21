@@ -15,13 +15,17 @@ will be processed shortly.{% endblocktrans %}</p>
 </ul>
 <p>
 {% trans 'Basket total:' %} {{ order.basket_total_incl_tax|currency:order.currency }}<br/>
+{% comment %}
 {% trans 'Shipping:' %} {{ order.shipping_incl_tax|currency:order.currency }}<br/>
+{% endcomment %}
 {% trans 'Order Total:' %} {{ order.total_incl_tax|currency:order.currency }}
 </p>
 
+{% comment %}
 <p>{% trans 'Shipping address:' %}</p>
 <p>{% for field in order.shipping_address.active_address_fields %}  {{ field }}<br/>
 {% endfor %}</p>
+{% endcomment %}
 
 {% if status_url %}
 <p>{% blocktrans %}You can view the status of this order by clicking <a href="{{ status_url }}" title="order status">here</a>{% endblocktrans %}</p>
